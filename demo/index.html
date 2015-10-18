@@ -1,0 +1,134 @@
+<!doctype html>
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>svg-morpheus Demo</title>
+  <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="../icon-morph.html">
+  <style>
+    label {
+      width: 5em;
+      display: inline-block;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body unresolved>
+
+  <p>An example of <code>&lt;icon-morph&gt;</code>:</p>
+
+  <p>Morph it!</p>
+  <p>
+    <label for="nextbtn">Show next</label>
+    <button id="nextbtn">Next</button>
+  </p>
+  <p>
+    <label for="easingselect">Easing</label>
+    <select id="easingselect">
+      <option>circ-in</option>
+      <option>circ-out</option>
+      <option>circ-in-out</option>
+      <option>cubic-in</option>
+      <option>cubic-out</option>
+      <option>cubic-in-out</option>
+      <option>elastic-in</option>
+      <option>elastic-out</option>
+      <option>elastic-in-out</option>
+      <option>expo-in</option>
+      <option>expo-out</option>
+      <option>expo-in-out</option>
+      <option>linear</option>
+      <option>quad-in</option>
+      <option>quad-out</option>
+      <option>quad-in-out</option>
+      <option>quart-in</option>
+      <option>quart-out</option>
+      <option>quart-in-out</option>
+      <option>quint-in</option>
+      <option selected>quint-out</option>
+      <option>quint-in-out</option>
+      <option>sine-in</option>
+      <option>sine-out</option>
+      <option>sine-in-out</option>
+    </select>
+  </p>
+  <p>
+    <label for="rotationselect">Rotation</label>
+    <select id="rotationselect">
+      <option selected>clock</option>
+      <option>counterclock</option>
+      <option>random</option>
+      <option>none</option>
+    </select>
+  </p>
+  <p>
+    <label for="durationinput">Duration</label>
+    <input id="durationinput" type="number" value="650"></input>
+  </p>
+  <p>
+    <label for="iconselect">Change to</label>
+    <select id="iconselect">
+    </select>
+  </p>
+
+
+  <icon-morph>
+    <iron-icon icon="icons:add"></iron-icon>
+    <iron-icon icon="icons:check"></iron-icon>
+    <iron-icon icon="icons:close"></iron-icon>
+  </icon-morph>
+
+
+
+  <script>
+    var iconMorphElement = document.querySelector('icon-morph');
+
+    iconMorphElement.addEventListener('icon-morph-initialized', function () {
+      var iconselect = document.querySelector('#iconselect');
+      iconMorphElement.icons.forEach(function (icon) {
+        var option = document.createElement('option');
+        option.innerHTML = icon;
+        iconselect.appendChild(option);
+      });
+    });
+
+    iconMorphElement.addEventListener('icon-morph-finished', function () {
+      console.log('Animation finished!');
+    });
+
+    document.querySelector('#nextbtn').addEventListener('click', function () {
+      iconMorphElement.next();
+    });
+
+    document.querySelector('#easingselect').addEventListener('change', function (event) {
+      iconMorphElement.easing = event.target.value;
+    });
+
+    document.querySelector('#rotationselect').addEventListener('change', function (event) {
+      iconMorphElement.rotation = event.target.value;
+    });
+
+    document.querySelector('#durationinput').addEventListener('change', function (event) {
+      iconMorphElement.duration = event.target.value;
+    });
+
+    document.querySelector('#iconselect').addEventListener('change', function (event) {
+      iconMorphElement.selected = event.target.value;
+    });
+  </script>
+
+</body>
+
+</html>

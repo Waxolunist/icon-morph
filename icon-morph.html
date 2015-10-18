@@ -1,0 +1,350 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../svg-morpheus-element/svg-morpheus.js.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
+<!--
+An element to morph from one svg to another using the library 
+[SVG Morpheus](http://alexk111.github.io/SVG-Morpheus/).
+
+The element searches all g elements, which are direct children of svg elements.
+Each g element should have an unique id. If not following algorithm is used to 
+give a dynamic id to each g element:
+      
+For each svg element get all g elements. 
+If that g does not have an id attribute, check for an id in following order:
+  - The svg element.
+  - The parent of that svg element.
+  - If the parent does have an icon attribute (iron-icon for instance), the value of that attribute is taken as id.
+  - Set the id to `icon-morph-#` where # is substituted with a running number starting at 0.
+
+This algorithm does not prevent duplicate ids. So in order to avoid this, each g node should already have an id attribute set.
+
+Example:
+
+    <icon-morph>
+      <iron-icon icon="icons:check"></iron-icon>
+      <iron-icon icon="icons:close"></iron-icon>
+    </icon-morph>
+
+@group Seed Elements
+@element icon-morph
+@demo demo/index.html
+@hero hero.svg
+-->
+<dom-module id="icon-morph">
+
+  <template>
+    <style>
+      :host {
+        display: block;
+        box-sizing: border-box;
+      }
+    </style>
+    <div id="contentContainer" style="display:none;">
+      <content></content>
+    </div>
+    <svg id="iconset" viewBox="0 0 48 48">
+    </svg>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+
+    is: 'icon-morph',
+
+    /**
+     * Fired after the element is fully initialized.
+     *
+     * @event icon-morph-initialized
+     */
+
+    /**
+     * Fired after a animation is finished.
+     *
+     * @event icon-morph-finished
+     */
+
+    properties: {
+
+      /**
+       * Current shown icon. Defaults to the first found icon.
+       * 
+       * @type String
+       */
+      selected: {
+        type: String,
+        value: '',
+        reflectToAttribute: true,
+        notify: true,
+        observer: '_onSelectedIconChange'
+      },
+
+      /**
+       *  Set a default duration for transition animations, in ms.
+       */
+      duration: {
+        type: Number,
+        value: 650,
+        reflectToAttribute: true
+      },
+
+      /**
+       * Set a default easing for transition animations.
+       * 
+       * Allowed values:
+       * - circ-in
+       * - circ-out
+       * - circ-in-out
+       * - cubic-in
+       * - cubic-out
+       * - cubic-in-out
+       * - elastic-in
+       * - elastic-out
+       * - elastic-in-out
+       * - expo-in
+       * - expo-out
+       * - expo-in-out
+       * - linear
+       * - quad-in
+       * - quad-out
+       * - quad-in-out
+       * - quart-in
+       * - quart-out
+       * - quart-in-out
+       * - quint-in
+       * - quint-out
+       * - quint-in-out
+       * - sine-in
+       * - sine-out
+       * - sine-in-out
+       */
+      easing: {
+        type: String,
+        value: 'quad-in-out',
+        reflectToAttribute: true
+      },
+
+      /**
+       * Set a default rotation for icon shapes. 
+       * - clock: clockwise 
+       * - counterclock: counterclockwise
+       * - random: randomly set clock/counterclock
+       * - none: no rotation
+       */
+      rotation: {
+        type: String,
+        value: 'clock',
+        reflectToAttribute: true
+      },
+
+      /**
+       * Property set to true when the initialization phase of this
+       * element is done.
+       */
+      _initialized: {
+        type: Boolean,
+        value: false
+      },
+
+      /**
+       * Array of all icon ids.
+       * 
+       * @type Array
+       */
+      icons: {
+        type: Array,
+        value: [],
+        readOnly: true
+      },
+
+      /**
+       * SVGMorpheus Object for the instance of this element.
+       *
+       * @type SVGMorpheus
+       */
+      _morpheus: {
+        type: Object
+      }
+
+    },
+
+    // Element Private Methods
+
+    /**
+     * Converts a NodeList to an Array.
+     *
+     * @param {NodeList} nodeList NodeList to convert.
+     * @return {Array} Array of all nodes.
+     */
+    _nodeListToArray: function (nodeList) {
+      return Array.prototype.slice.call(nodeList);
+    },
+
+    /**
+     * Flattens an array of arrays.
+     *
+     * @param {Array} array Array to flatten.
+     * @return {Array} Flattened array.
+     */
+    _flattenArray: function (array) {
+      return array.reduce(function (a, b) {
+        return a.concat(b);
+      }, []);
+    },
+
+    /**
+     * Helper method.
+     *
+     * @param {Array} array Array to test.
+     * @param {any} obj Object to test if it is contained in array.
+     * @return {Boolean} true if the array contains the specified object, false otherwise.
+     */
+    _arrayContains: function (array, obj) {
+      return array && array.indexOf(obj) > -1;
+    },
+
+    /**
+     * Sets an id to a g element, if the element does not have one.
+     * Sets the display style attribute to none.
+     *
+     * @param {Element} g the g element to prepare
+     * @param {Number} idx the number to append to the generated id, if no other id could determined.
+     * @return {Element} the prepared g element
+     */
+    _prepareGNode: function (g, idx) {
+
+      if (!g.id) {
+        if (g.parentNode.id) {
+          g.id = g.parentNode.id;
+        } else if (g.parentNode.parentNode.id) {
+          g.id = g.parentNode.parentNode.id;
+        } else if (g.parentNode.parentNode.icon) {
+          g.id = g.parentNode.parentNode.icon;
+        } else {
+          g.id = 'icon-morph-' + idx;
+        }
+      }
+      g.style.display = 'none';
+      return g;
+    },
+
+    // Element Observer Methods
+
+    _onSelectedIconChange: function (newicon) {
+      if (this._initialized) {
+        this._to(newicon);
+      }
+    },
+
+    /**
+     * @param {Boolean} initial Indicates, if an options object for the initial
+     * creation of the SVG
+     * Morpheus object should be created or an options object for a normal 
+     * icon change.
+     * @return {Object} options object
+     */
+    _getOptions: function (initial) {
+      var options = {};
+      options.easing = this.easing;
+      options.duration = this.duration;
+      options.rotation = this.rotation;
+      if (initial) {
+        options.iconId = this.selected || this.icons[0];
+      }
+      return options;
+    },
+
+    _fireAnimationEnd: function () {
+      this.fire('icon-morph-finished');
+    },
+
+    // Element Lifecyle
+
+    attached: function () {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+
+      var gArray = this.getContentChildren().map(function (svg) {
+        var gNodes = svg.querySelectorAll('svg g');
+        return this._nodeListToArray(gNodes);
+      }.bind(this));
+
+      var gArrayFlattened = this._flattenArray(gArray);
+      gArrayFlattened.forEach(this._prepareGNode.bind(this));
+      gArrayFlattened.forEach(function (gNode) {
+        this.$.iconset.appendChild(gNode);
+        this.icons.push(gNode.id);
+      }.bind(this));
+
+      this.removeChild(this.$.contentContainer);
+
+      var options = this._getOptions(true);
+      this._morpheus = new SVGMorpheus(this.$.iconset, options);
+
+      // initial icon set does not work in 0.1.8. Workaround until fix
+      // TODO Pull Request for fixing
+      this._morpheus._setupAnimation(options.iconId);
+      this._morpheus._updateAnimationProgress(1);
+      this._morpheus._animationEnd();
+      // End of workaround
+
+      this.selected = options.iconId;
+      this._initialized = true;
+      this.fire('icon-morph-initialized');
+    },
+
+    detached: function () {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+    },
+
+    // Element Behavior
+
+    /**
+     * Morphs the icon to the given icon.
+     *
+     * @param {string} icon Id of the icon to morph to.
+     */
+    _to: function (icon) {
+      if (this._arrayContains(this.icons, icon)) {
+        this.selected = icon;
+        this._morpheus.to(icon, this._getOptions(false), this._fireAnimationEnd.bind(this));
+      }
+    },
+
+    /**
+     * Morphs the element to the next icon. If the current icon is
+     * the last in a row, it morphs to the first. If the current icon is 
+     * not set it morphs to the first one.
+     */
+    next: function () {
+      var currentIndex = this.icons.indexOf(this.selected);
+      if (currentIndex > -1) {
+        if ((currentIndex + 1) === this.icons.length) {
+          this._to(this.icons[0]);
+        } else {
+          this._to(this.icons[currentIndex + 1]);
+        }
+      } else {
+        this._to(this.icons[0]);
+      }
+    }
+
+  });
+</script>
