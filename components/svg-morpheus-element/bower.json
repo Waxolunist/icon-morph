@@ -1,0 +1,32 @@
+{
+  "name": "svg-morpheus-element",
+  "version": "1.0.0",
+  "authors": [
+    "Christian Sterzl <christian.sterzl@gmail.com>"
+  ],
+  "description": "Webcomponent for importing SVG Morpheus and supporting sharing of SVG Morpheus, if more than one component uses SVG Morpheus.",
+  "keywords": [
+    "Polymer",
+    "web-components",
+    "webcomponent",
+    "element",
+    "SVG Morpheus",
+    "import",
+    "js",
+    "javascript",
+    "library"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "svg-morpheus": "~0.1"
+  },
+  "homepage": "https://github.com/Waxolunist/svg-morpheus-element",
+  "main": "svg-morpheus.js.html"
+}

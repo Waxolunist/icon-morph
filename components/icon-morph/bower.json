@@ -1,0 +1,29 @@
+{
+  "name": "icon-morph",
+  "version": "1.0.3",
+  "authors": [
+    "Christian Sterzl <christian.sterzl@gmail.com>"
+  ],
+  "description": "An element for morphing from one iron-icon to another.",
+  "keywords": [
+    "web-component",
+    "polymer",
+    "seed",
+    "svg-morpheus"
+  ],
+  "main": "svg-morpheus.html",
+  "license": "http://polymer.github.io/LICENSE.txt",
+  "homepage": "https://github.com/Waxolunist/svg-morpheus-element/",
+  "ignore": [
+    "/.*",
+    "/test/"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.1.0",
+    "svg-morpheus-element": "~1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*"
+  }
+}
