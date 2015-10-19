@@ -7,9 +7,12 @@
   "description": "An element for morphing from one iron-icon to another.",
   "keywords": [
     "web-component",
+    "web-components",
+    "webcomponent",
     "polymer",
     "seed",
-    "svg-morpheus"
+    "icon-morph",
+    "morph"
   ],
   "main": "svg-morpheus.html",
   "license": "http://polymer.github.io/LICENSE.txt",
